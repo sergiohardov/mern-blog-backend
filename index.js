@@ -14,6 +14,7 @@ const app = express();
 app.use(express.json());
 
 app.post("/auth/register", registerValidation, UserController.register);
+app.post("/auth/login", UserController.login);
 
 app.listen(4444, (err) => {
   if (err) return console.log(err);
