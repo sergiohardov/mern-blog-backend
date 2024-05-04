@@ -2,8 +2,10 @@ import express from "express";
 import mongoose from "mongoose";
 import multer from "multer";
 import { registerValidation, loginValidation } from "./validations/auth.js ";
+import { createValidation } from "./validations/post.js";
 import checkAuth from "./utils/checkAuth.js";
 import * as UserController from "./controllers/User.js";
+import * as PostController from "./controllers/Post.js";
 import handleValidationErrors from "./utils/handleValidationErrors.js";
 
 mongoose
@@ -42,11 +44,30 @@ app.post(
   UserController.login
 );
 app.get("/auth/me", checkAuth, UserController.me);
+
 app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
   res.json({
     url: `/uploads/${req.file.originalname}`,
   });
 });
+
+app.get("/posts", PostController.getAll);
+app.get("/posts/:id", PostController.getOne);
+app.post(
+  "/posts",
+  checkAuth,
+  createValidation,
+  handleValidationErrors,
+  PostController.create
+);
+app.delete("/posts/:id", checkAuth, PostController.remove);
+app.patch(
+  "/posts/:id",
+  checkAuth,
+  createValidation,
+  handleValidationErrors,
+   PostController.update
+);
 
 app.listen(4444, (err) => {
   if (err) return console.log(err);
