@@ -1,12 +1,10 @@
 import express from "express";
 import mongoose from "mongoose";
 import multer from "multer";
-import { registerValidation, loginValidation } from "./validations/auth.js ";
-import { createValidation } from "./validations/post.js";
-import checkAuth from "./utils/checkAuth.js";
-import * as UserController from "./controllers/User.js";
-import * as PostController from "./controllers/Post.js";
-import handleValidationErrors from "./utils/handleValidationErrors.js";
+
+import { AuthValidation, PostValidation } from "./validations/index.js";
+import { UserController, PostController } from "./controllers/index.js";
+import { checkAuth, handleValidationErrors } from "./utils/index.js";
 
 mongoose
   .connect(
@@ -31,32 +29,32 @@ const upload = multer({ storage });
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-app.post(
-  "/auth/register",
-  registerValidation,
-  handleValidationErrors,
-  UserController.register
-);
-app.post(
-  "/auth/login",
-  loginValidation,
-  handleValidationErrors,
-  UserController.login
-);
-app.get("/auth/me", checkAuth, UserController.me);
-
 app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
   res.json({
     url: `/uploads/${req.file.originalname}`,
   });
 });
 
+app.post(
+  "/auth/register",
+  AuthValidation.register,
+  handleValidationErrors,
+  UserController.register
+);
+app.post(
+  "/auth/login",
+  AuthValidation.login,
+  handleValidationErrors,
+  UserController.login
+);
+app.get("/auth/me", checkAuth, UserController.me);
+
 app.get("/posts", PostController.getAll);
 app.get("/posts/:id", PostController.getOne);
 app.post(
   "/posts",
   checkAuth,
-  createValidation,
+  PostValidation.create,
   handleValidationErrors,
   PostController.create
 );
@@ -64,9 +62,9 @@ app.delete("/posts/:id", checkAuth, PostController.remove);
 app.patch(
   "/posts/:id",
   checkAuth,
-  createValidation,
+  PostValidation.create,
   handleValidationErrors,
-   PostController.update
+  PostController.update
 );
 
 app.listen(4444, (err) => {
